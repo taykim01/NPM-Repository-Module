@@ -1,6 +1,6 @@
 import { Cookies, createClient } from "./supabase-client.js";
 
-export default class AuthRepository {
+export class AuthRepository {
   constructor(
     public url: string,
     public apiKey: string,
