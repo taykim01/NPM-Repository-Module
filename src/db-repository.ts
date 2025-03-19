@@ -1,15 +1,16 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, Cookies } from "./supabase-client.js";
 
 export class DBRepository<Entity> {
   constructor(
     public table: string,
     public url: string,
-    public apiKey: string
+    public apiKey: string,
+    public cookies: Cookies
   ) {}
 
   async create(requestData: Partial<Entity>): Promise<string> {
-    const serverClient = createClient(this.url, this.apiKey);
-    const { data, error } = await serverClient
+    const supabase = await createClient(this.url, this.apiKey, this.cookies);
+    const { data, error } = await supabase
       .from(this.table)
       .insert(requestData)
       .select("id");
@@ -22,9 +23,9 @@ export class DBRepository<Entity> {
     query: Record<K, Entity[K]>,
     selector?: (keyof Entity)[]
   ): Promise<Entity> {
-    const serverClient = createClient(this.url, this.apiKey);
+    const supabase = await createClient(this.url, this.apiKey, this.cookies);
     const selectorArray = selector ? selector.join(", ") : "*";
-    let querySnapshot = serverClient.from(this.table).select(selectorArray);
+    let querySnapshot = supabase.from(this.table).select(selectorArray);
     for (const key in query) {
       querySnapshot = querySnapshot.eq(key as string, query[key]);
     }
@@ -37,9 +38,9 @@ export class DBRepository<Entity> {
     query: Record<K, Entity[K]>,
     selector?: (keyof Entity)[]
   ): Promise<Entity[]> {
-    const serverClient = createClient(this.url, this.apiKey);
+    const supabase = await createClient(this.url, this.apiKey, this.cookies);
     const selectorArray = selector ? selector.join(", ") : "*";
-    let querySnapshot = serverClient.from(this.table).select(selectorArray);
+    let querySnapshot = supabase.from(this.table).select(selectorArray);
     for (const key in query) {
       querySnapshot = querySnapshot.eq(key as string, query[key]);
     }
@@ -52,10 +53,10 @@ export class DBRepository<Entity> {
     query: Record<K, Entity[K]>,
     selector: K[]
   ): Promise<Entity[]> {
-    const serverClient = createClient(this.url, this.apiKey);
+    const supabase = await createClient(this.url, this.apiKey, this.cookies);
     const selectorArray = selector.join(", ");
 
-    let querySnapshot = serverClient.from(this.table).select(selectorArray);
+    let querySnapshot = supabase.from(this.table).select(selectorArray);
     for (const key in query) {
       querySnapshot = querySnapshot.neq(key as string, query[key]);
     }
@@ -68,10 +69,10 @@ export class DBRepository<Entity> {
     query: string,
     selector?: K[]
   ): Promise<Entity[]> {
-    const serverClient = createClient(this.url, this.apiKey);
+    const supabase = await createClient(this.url, this.apiKey, this.cookies);
     const selectorArray = selector ? selector.join(", ") : "*";
 
-    const { data, error } = await serverClient
+    const { data, error } = await supabase
       .from(this.table)
       .select(selectorArray)
       .ilike("email", `%${query}%`);
@@ -81,8 +82,8 @@ export class DBRepository<Entity> {
   }
 
   async update(id: string, requestData: Partial<Entity>) {
-    const serverClient = createClient(this.url, this.apiKey);
-    const { error } = await serverClient
+    const supabase = await createClient(this.url, this.apiKey, this.cookies);
+    const { error } = await supabase
       .from(this.table)
       .update(requestData)
       .eq("id", id)
@@ -91,16 +92,16 @@ export class DBRepository<Entity> {
   }
 
   async deleteByID(id: string): Promise<void> {
-    const serverClient = createClient(this.url, this.apiKey);
-    const { error } = await serverClient.from(this.table).delete().eq("id", id);
+    const supabase = await createClient(this.url, this.apiKey, this.cookies);
+    const { error } = await supabase.from(this.table).delete().eq("id", id);
     if (error) throw new Error(error.message);
   }
 
   async deleteAll<K extends keyof Entity>(
     query: Record<K, Entity[K]>
   ): Promise<void> {
-    const serverClient = createClient(this.url, this.apiKey);
-    let querySnapshot = serverClient.from(this.table).delete();
+    const supabase = await createClient(this.url, this.apiKey, this.cookies);
+    let querySnapshot = supabase.from(this.table).delete();
     for (const key in query) {
       querySnapshot = querySnapshot.eq(key as string, query[key]);
     }
@@ -111,8 +112,8 @@ export class DBRepository<Entity> {
   async count<K extends keyof Entity>(
     query: Record<K, Entity[K]>
   ): Promise<number> {
-    const serverClient = createClient(this.url, this.apiKey);
-    let querySnapshot = serverClient.from(this.table).select("id");
+    const supabase = await createClient(this.url, this.apiKey, this.cookies);
+    let querySnapshot = supabase.from(this.table).select("id");
     for (const key in query) {
       querySnapshot = querySnapshot.eq(key as string, query[key]);
     }
