@@ -1,8 +1,10 @@
+import { Cookies } from "./supabase-client.js";
 export declare class DBRepository<Entity> {
     table: string;
     url: string;
     apiKey: string;
-    constructor(table: string, url: string, apiKey: string);
+    cookies: Cookies;
+    constructor(table: string, url: string, apiKey: string, cookies: Cookies);
     create(requestData: Partial<Entity>): Promise<string>;
     readOne<K extends keyof Entity>(query: Record<K, Entity[K]>, selector?: (keyof Entity)[]): Promise<Entity>;
     readAll<K extends keyof Entity>(query: Record<K, Entity[K]>, selector?: (keyof Entity)[]): Promise<Entity[]>;
